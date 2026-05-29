@@ -13,13 +13,26 @@ export default function PublicSurveyPage() {
   const [submitting, setSubmitting] = useState(false)
   const [confirmMsg, setConfirmMsg] = useState('')
   const [startedAt] = useState(() => new Date().toISOString())
+  const [timeLeft, setTimeLeft] = useState(null) // seconds remaining, null = no limit
 
   useEffect(() => { loadSurvey() }, [token])
 
+  // Countdown timer
+  useEffect(() => {
+    if (timeLeft === null || step !== 'form') return
+    if (timeLeft <= 0) { setStep('expired'); return }
+    const t = setTimeout(() => setTimeLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [timeLeft, step])
+
   const loadSurvey = async () => {
+    if (localStorage.getItem('survey_responded_' + token)) return setStep('already')
     try {
       const { data } = await publicApi.getSurvey(token)
       setSurvey(data)
+      if (data.settings.time_limit_minutes) {
+        setTimeLeft(data.settings.time_limit_minutes * 60)
+      }
       setStep(data.already_responded ? 'already' : 'form')
     } catch { setStep('error') }
   }
@@ -46,11 +59,13 @@ export default function PublicSurveyPage() {
   }
 
   const submit = async () => {
+    if (timeLeft !== null && timeLeft <= 0) return alert('[ TIME EXPIRED: CANNOT SUBMIT ]')
     if (!validate()) return
     setSubmitting(true)
     try {
       const answerList = Object.entries(answers).map(([question_id, value]) => ({ question_id, value }))
       const { data } = await publicApi.respond(token, { respondent_name: respondentName || null, respondent_email: respondentEmail || null, started_at: startedAt, answers: answerList })
+      localStorage.setItem('survey_responded_' + token, '1')
       setConfirmMsg(data.message); setStep('done')
     } catch (err) { alert('ERROR: ' + (err.response?.data?.message || err.message)) }
     finally { setSubmitting(false) }
@@ -70,6 +85,13 @@ export default function PublicSurveyPage() {
       <div style={{ fontFamily: "'VT323', monospace", fontSize: '48px', marginBottom: '8px' }}>[ OK ]</div>
       <div style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>RESPONSE SUBMITTED</div>
       <div style={{ border: '1.5px dashed #bbb', padding: '10px 14px', fontSize: '12px', color: '#555', textTransform: 'uppercase' }}>{confirmMsg || 'THANK YOU FOR YOUR RESPONSE!'}</div>
+    </Term>
+  )
+
+  if (step === 'expired') return (
+    <Term>
+      <div style={{ fontFamily: "'VT323', monospace", fontSize: '36px', marginBottom: '8px' }}>[ TIME EXPIRED ]</div>
+      <div style={{ fontSize: '12px', textTransform: 'uppercase', color: '#666' }}>THE TIME LIMIT FOR THIS SURVEY HAS BEEN REACHED.</div>
     </Term>
   )
 
@@ -105,6 +127,23 @@ export default function PublicSurveyPage() {
             <div style={{ height: '6px', border: '1px solid #000', background: '#fff' }}>
               <div style={{ height: '100%', background: '#000', width: `${progress}%`, transition: 'width 0.3s' }} />
             </div>
+          </div>
+        )}
+
+        {/* Timer */}
+        {timeLeft !== null && (
+          <div style={{
+            marginBottom: '16px', border: `1.5px solid ${timeLeft <= 60 ? '#000' : '#ccc'}`,
+            padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: timeLeft <= 60 ? '#000' : '#fff'
+          }}>
+            <span style={{ fontSize: '10px', textTransform: 'uppercase', color: timeLeft <= 60 ? '#fff' : '#888' }}>
+              TIME REMAINING
+            </span>
+            <span style={{ fontFamily: "'VT323', monospace", fontSize: '24px', color: timeLeft <= 60 ? '#fff' : '#000' }}>
+              {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
+              {timeLeft <= 60 && <span className='blink'> !</span>}
+            </span>
           </div>
         )}
 
