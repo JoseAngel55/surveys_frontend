@@ -65,6 +65,37 @@ export const surveysApi = {
   // Responses & Reports
   getResponses: (id) => api.get(`/surveys/${id}/responses`),
   getReport: (id) => api.get(`/surveys/${id}/reports`),
+  // Exports — usa fetch con blob porque axios no maneja bien streams de archivo
+  exportPDF: async (id) => {
+    const token = localStorage.getItem('token')
+    const base  = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    const res   = await fetch(`${base}/surveys/${id}/export/pdf`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Error al generar PDF')
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `reporte-${id}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  },
+  exportExcel: async (id) => {
+    const token = localStorage.getItem('token')
+    const base  = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    const res   = await fetch(`${base}/surveys/${id}/export/excel`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Error al generar Excel')
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `reporte-${id}.xlsx`
+    a.click()
+    URL.revokeObjectURL(url)
+  },
 }
 
 // ── Public ──

@@ -8,6 +8,7 @@ export default function ReportPage() {
   const navigate = useNavigate()
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState({ pdf: false, excel: false })
 
   useEffect(() => { loadReport() }, [surveyId])
 
@@ -15,6 +16,18 @@ export default function ReportPage() {
     try { const { data } = await surveysApi.getReport(surveyId); setReport(data) }
     catch (err) { console.error(err) }
     finally { setLoading(false) }
+  }
+
+  const handleExport = async (type) => {
+    setExporting(e => ({ ...e, [type]: true }))
+    try {
+      if (type === 'pdf') await surveysApi.exportPDF(surveyId)
+      else await surveysApi.exportExcel(surveyId)
+    } catch (err) {
+      alert('[ ERROR: ' + err.message + ' ]')
+    } finally {
+      setExporting(e => ({ ...e, [type]: false }))
+    }
   }
 
   const formatDuration = (sec) => {
@@ -51,15 +64,51 @@ export default function ReportPage() {
           onMouseLeave={e => { e.target.style.background = '#fff'; e.target.style.color = '#000' }}>
           ← BACK
         </button>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "'VT323', monospace", fontSize: '22px', letterSpacing: '0.03em' }}>{report.survey_title.toUpperCase()}</div>
           <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>// COMBAT REPORT</div>
+        </div>
+
+        {/* ── EXPORT BUTTONS ── */}
+        <div style={{ display: 'flex', gap: 0 }}>
+          <button
+            onClick={() => handleExport('pdf')}
+            disabled={exporting.pdf}
+            style={{
+              padding: '6px 14px', border: '1.5px solid #000', marginRight: '-1.5px',
+              background: exporting.pdf ? '#000' : '#fff',
+              color: exporting.pdf ? '#fff' : '#000',
+              fontFamily: "'Share Tech Mono', monospace", fontSize: '11px',
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+              cursor: exporting.pdf ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px'
+            }}
+            onMouseEnter={e => { if (!exporting.pdf) { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' } }}
+            onMouseLeave={e => { if (!exporting.pdf) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000' } }}>
+            {exporting.pdf ? '[ GENERATING... ]' : '↓ PDF'}
+          </button>
+          <button
+            onClick={() => handleExport('excel')}
+            disabled={exporting.excel}
+            style={{
+              padding: '6px 14px', border: '1.5px solid #000',
+              background: exporting.excel ? '#000' : '#fff',
+              color: exporting.excel ? '#fff' : '#000',
+              fontFamily: "'Share Tech Mono', monospace", fontSize: '11px',
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+              cursor: exporting.excel ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: '6px'
+            }}
+            onMouseEnter={e => { if (!exporting.excel) { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff' } }}
+            onMouseLeave={e => { if (!exporting.excel) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000' } }}>
+            {exporting.excel ? '[ GENERATING... ]' : '↓ EXCEL'}
+          </button>
         </div>
       </div>
 
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
 
-        {/* KPIs — same 2-col grid as screenshots */}
+        {/* KPIs */}
         <div className="section-label">STATS SUMMARY</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, marginBottom: '20px', border: '1.5px solid #000' }}>
           {[
@@ -105,7 +154,6 @@ export default function ReportPage() {
               </div>
             </div>
 
-            {/* Bar chart for choice questions */}
             {q.option_stats?.length > 0 && (
               <ResponsiveContainer width="100%" height={Math.max(100, q.option_stats.length * 36)}>
                 <BarChart data={q.option_stats} layout="vertical" margin={{ left: 8, right: 40 }}>
@@ -124,7 +172,6 @@ export default function ReportPage() {
               </ResponsiveContainer>
             )}
 
-            {/* Numeric stats */}
             {q.numeric_stats && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, border: '1.5px solid #000' }}>
                 {[['MIN', q.numeric_stats.min], ['MAX', q.numeric_stats.max], ['MEAN', q.numeric_stats.mean?.toFixed(2)], ['MEDIAN', q.numeric_stats.median]].map(([lbl, val], i) => (
@@ -136,7 +183,6 @@ export default function ReportPage() {
               </div>
             )}
 
-            {/* Open answers */}
             {q.open_answers?.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
                 {q.open_answers.slice(0, 5).map((ans, i) => (
@@ -150,7 +196,6 @@ export default function ReportPage() {
           </div>
         ))}
 
-        {/* Tip */}
         <div style={{ marginTop: '20px', border: '1.5px dashed #bbb', padding: '10px 14px', fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           COMMANDER'S TIP:<br />
           PUBLISH YOUR SURVEY AND SHARE THE UNIQUE LINK TO COLLECT MORE RESPONSES.
