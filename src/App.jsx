@@ -5,6 +5,8 @@ import DashboardPage from './pages/DashboardPage'
 import SurveyBuilderPage from './pages/SurveyBuilderPage'
 import ReportPage from './pages/ReportPage'
 import PublicSurveyPage from './pages/PublicSurveyPage'
+import AssignedSurveyPage from './pages/AssignedSurveyPage'
+import GroupsPage from './pages/GroupsPage'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -18,10 +20,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          {/* Public survey route — no auth required */}
+          {/* Public survey — anonymous link */}
           <Route path="/s/:token" element={<PublicSurveyPage />} />
+          {/* Assigned survey — unique token per user, no auth required */}
+          <Route path="/a/:token" element={<AssignedSurveyPage />} />
           {/* Protected routes */}
           <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+          <Route path="/groups" element={<PrivateRoute><GroupsPage /></PrivateRoute>} />
           <Route path="/surveys/new" element={<PrivateRoute><SurveyBuilderPage /></PrivateRoute>} />
           <Route path="/surveys/:surveyId/edit" element={<PrivateRoute><SurveyBuilderPage /></PrivateRoute>} />
           <Route path="/surveys/:surveyId/report" element={<PrivateRoute><ReportPage /></PrivateRoute>} />

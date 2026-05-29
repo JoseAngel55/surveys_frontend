@@ -52,7 +52,12 @@ export default function DashboardPage() {
           <div style={{ fontFamily: "'VT323', monospace", fontSize: '24px', letterSpacing: '0.05em' }}>SURVEYAPP</div>
           <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase' }}>/ DASHBOARD</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Groups nav */}
+          <button className="btn" onClick={() => navigate('/groups')}
+            style={{ fontSize: '10px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            ◈ GROUPS
+          </button>
           <div style={{ border: '1.5px solid #000', padding: '4px 10px', fontSize: '11px', textTransform: 'uppercase', display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span style={{ fontSize: '10px', color: '#888' }}>USER:</span>
             <span>{user?.name?.toUpperCase() || 'UNKNOWN'}</span>
@@ -115,7 +120,6 @@ export default function DashboardPage() {
               return (
                 <div key={survey.id} className="fade-in" style={{ border: '1.5px solid #000', marginTop: idx > 0 ? '-1.5px' : 0, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                    {/* Left */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                         <span style={{ fontFamily: "'VT323', monospace", fontSize: '22px', letterSpacing: '0.03em' }}>
@@ -133,7 +137,6 @@ export default function DashboardPage() {
                         CREATED: {new Date(survey.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
                       </div>
                     </div>
-                    {/* Right — timestamp like combat log */}
                     <div style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase', whiteSpace: 'nowrap', paddingTop: '4px' }}>
                       {(() => {
                         const diff = Date.now() - new Date(survey.updated_at || survey.created_at)
@@ -145,15 +148,15 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Public link row */}
+                  {/* Public link */}
                   {survey.public_token && (
                     <div style={{ border: '1.5px dashed #888', padding: '5px 10px', display: 'flex', alignItems: 'center', gap: '8px', background: '#fafafa' }}>
-                      <span style={{ fontSize: '10px', color: '#555', textTransform: 'uppercase' }}>LINK:</span>
+                      <span style={{ fontSize: '10px', color: '#555', textTransform: 'uppercase' }}>PUBLIC:</span>
                       <span style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: '10px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#333' }}>
                         {window.location.origin}/s/{survey.public_token}
                       </span>
                       <button className="btn" style={{ padding: '2px 8px', fontSize: '10px' }}
-                        onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/s/${survey.public_token}`); alert('COPIED TO CLIPBOARD') }}>
+                        onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/s/${survey.public_token}`); alert('COPIED!') }}>
                         [COPY]
                       </button>
                     </div>
@@ -183,10 +186,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── COMMANDER TIP ── */}
         <div style={{ marginTop: '20px', border: '1.5px dashed #bbb', padding: '10px 14px', fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           COMMANDER'S TIP:<br />
-          PUBLISH A SURVEY TO GENERATE A UNIQUE PUBLIC LINK. SHARE IT WITH ANYONE TO COLLECT RESPONSES.
+          USA ◈ GROUPS PARA ASIGNAR ENCUESTAS A GRUPOS CON ENLACES ÚNICOS POR USUARIO.
         </div>
       </div>
     </div>
