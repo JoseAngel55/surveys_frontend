@@ -112,9 +112,9 @@ export default function ReportPage() {
         <div className="section-label">STATS SUMMARY</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, marginBottom: '20px', border: '1.5px solid #000' }}>
           {[
-            { val: report.total_assigned, label: 'TOTAL ASSIGNED' },
             { val: report.total_responses, label: 'TOTAL RESPONSES' },
-            { val: `${report.completion_rate}%`, label: 'COMPLETION RATE' },
+            { val: report.complete_responses, label: 'COMPLETE' },
+            { val: report.total_questions, label: 'QUESTIONS' },
             { val: formatDuration(report.avg_duration_seconds), label: 'AVG DURATION' },
           ].map((k, i) => (
             <div key={i} style={{ padding: '20px', textAlign: 'center', borderRight: i % 2 === 0 ? '1.5px solid #000' : 'none', borderTop: i >= 2 ? '1.5px solid #000' : 'none' }}>
